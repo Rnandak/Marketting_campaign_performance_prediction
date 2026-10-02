@@ -1,241 +1,348 @@
-import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# App Configuration
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, accuracy_score, confusion_matrix, classification_report
+from sklearn.tree import DecisionTreeClassifier
+from xgboost import XGBClassifier
+from sklearn.ensemble import RandomForestClassifier
+
+import streamlit as st
+
+# Page Configuration
 st.set_page_config(page_title="Marketing Campaign Dashboard", layout="wide")
+st.title("📊 Marketing Campaign Performance & Prediction Dashboard")
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# --- Custom Styling ---
-st.markdown("""
-<style>
-    .reportview-container { background: #f5f7f8; }
-    .metric-container {
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #e6e9ef;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        margin-bottom: 20px;
-    }
-</style>
-""", unsafe_allow_html=True)
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import r2_score, accuracy_score, confusion_matrix, classification_report
+from sklearn.tree import DecisionTreeClassifier
+from xgboost import XGBClassifier
+from sklearn.ensemble import RandomForestClassifier
 
-# --- Title Header ---
-st.title("📊 Marketing Campaign Performance & Model Dashboard")
-st.write("Comprehensive dashboard displaying exploratory data analysis, scatter distributions, and 5 supervised machine learning evaluation metrics.")
-st.markdown("---")
+import streamlit as st
 
-# --- Top Tabs Selection Layout ---
-tab_eda, tab_plots, tab_models = st.tabs([
-    "📋 Overview & EDA Data", 
-    "📈 Performance Scatter Plots", 
-    "🤖 Supervised Learning Models & Metrics"
-])
+# Page Configuration
+st.set_page_config(page_title="Marketing Campaign Dashboard", layout="wide")
+st.title("📊 Marketing Campaign Performance & Prediction Dashboard")
+@st.cache_data
+def process_and_consolidate():
 
-# ==========================================
-# TAB 1: OVERVIEW & EDA DATA
-# ==========================================
-with tab_eda:
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Data Harmonization Strategy")
-        st.info("""
-        **Pipeline Workflow Implemented:**
-        - Nulls in **Numerical Data** are handled via median value substitution.
-        - Nulls in **Categorical Data** are handled via mode value substitution.
-        - Dataset rows are vertically combined using row-wise concatenation.
-        """)
-    with col2:
-        st.subheader("Engineered Performance Metrics")
-        st.success("""
-        **Calculated Key Rates Added:**
-        - **CTR (Click-Through Rate):** `Clicks` / `Leads`
-        - **Lead Rate:** `Leads` / `Clicks`
-        - **Conversion Rate:** `Conversions` / `Leads`
-        """)
-
-    st.markdown("---")
-    st.markdown("---")
-    st.subheader("🛠️ Machine Learning Engineering & Model Architecture")
-    st.write("Summary overview of data transformers, processing pipelines, and supervised learning models implemented from the source notebook:")
-    
-    # Grid setup for pipeline components
-    arch_col1, arch_col2 = st.columns(2)
-    
-    with arch_col1:
-        st.markdown("""
-        <div style='background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e6e9ef; margin-bottom: 15px;'>
-            <h4 style='margin-top:0;'>⚙️ Data Preprocessing & Pipeline Transformers</h4>
-            <ul style='margin-bottom:0;'>
-                <li><b>Data Encoding:</b> <code>LabelEncoder</code> utilized to transform categorical string columns into distinct numeric indexes.</li>
-                <li><b>Feature Scaling:</b> <code>MinMaxScaler</code> used inside continuous data pipeline pipelines to bind data limits between 0 and 1.</li>
-                <li><b>Data Isolation:</b> <code>train_test_split</code> configuration tracking to segment baseline feature boundaries safely.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div style='background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e6e9ef;'>
-            <h4 style='margin-top:0;'>📉 Continuous Value Estimations (Regression)</h4>
-            <ul style='margin-bottom:0;'>
-                <li><b>Linear Regression:</b> Implemented under the continuous sub-category workspace framework to estimate target trend rates.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with arch_col2:
-        st.markdown("""
-        <div style='background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e6e9ef; margin-bottom: 15px;'>
-            <h4 style='margin-top:0;'>🎯 Discrete Category Separations (Classification)</h4>
-            <ul style='margin-bottom:0;'>
-                <li><b>Logistic Regression:</b> Base classification model mapping probability thresholds against target engagement targets.</li>
-                <li><b>Decision Tree Classifier:</b> Group segmentation model splitting feature node splits based on absolute impurity metrics.</li>
-                <li><b>Random Forest Classifier:</b> Ensemble classifier utilizing voted tree structures to prevent validation drift.</li>
-                <li><b>XGBoost Classifier:</b> Advanced gradient boosted decision framework targeting optimized loss boundaries.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div style='background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e6e9ef;'>
-            <h4 style='margin-top:0;'>🚀 Hyperparameter Tuning & Performance Optimization</h4>
-            <ul style='margin-bottom:0;'>
-                <li><b>RandomizedSearchCV:</b> Cross-validation search loops executed across randomized parameter grid spaces to find optimal operational weights.</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-
-# ==========================================
-# TAB 2: PERFORMANCE PLOTS
-# ==========================================
-with tab_plots:
-    st.subheader("📈 Data Distribution & Regression Trendlines")
-    st.write("Visual regression correlation plot describing your continuous conversions mapped directly against captured user leads.")
-    
-    # Generating placeholder dataset matching the exact shape/range structure of your notebook data
-    np.random.seed(42)
-    mock_leads = np.random.randint(50, 8876, size=500)
-    mock_conversions = (mock_leads * 0.52) + np.random.normal(75, 400, size=500)
-    mock_conversions = np.clip(mock_conversions, 0, None)
-    plot_df = pd.DataFrame({'Leads': mock_leads, 'Conversions': mock_conversions})
-    
-    # Render regression plot neatly
-    fig, ax = plt.subplots(figsize=(10, 4.5))
-    sns.regplot(
-        data=plot_df,
-        x='Leads',
-        y='Conversions',
-        ci=None, # Removes confidence interval shading as specified in your code cell
-        scatter_kws={'alpha': 0.6, 'color': '#2b5c8f'},
-        line_kws={'color': 'red', 'linewidth': 2},
-        ax=ax
+    # Load datasets
+    tira = pd.read_csv(
+        r"C:\Users\Nanda\OneDrive\Documents\Marketting_campaign_performance_prediction\Dataset\tira_campaign_data_with_nulls.csv",
+        encoding_errors="ignore"
     )
-    ax.set_title("Regression Fit: Volume of Leads vs. Successful Conversions", fontsize=12, fontweight='bold')
-    ax.set_xlabel("Leads Captured")
-    ax.set_ylabel("Final Conversions")
-    st.pyplot(fig)
-    st.caption("💡 Note: Shading removed (ci=None). The trend indicates a strong positive dependency driver ruleset.")
+    purple = pd.read_csv(
+        r"C:\Users\Nanda\OneDrive\Documents\Marketting_campaign_performance_prediction\Dataset\purplle_campaign_data_with_nulls.csv",
+        encoding_errors="ignore"
+    )
+    nyka = pd.read_csv(
+        r"C:\Users\Nanda\OneDrive\Documents\Marketting_campaign_performance_prediction\Dataset\nykaa_campaign_data_with_nulls.csv",
+        encoding_errors="ignore"
+    )
 
-# ==========================================
-# TAB 3: SUPERVISED LEARNING MODELS
-# ==========================================
-with tab_models:
-    st.subheader("🤖 Supervised Machine Learning Evaluation (5 Models Summary)")
-    st.write("Detailed results showing R² scores, classification reports, and optimized hyperparameter tuning outputs.")
-    st.markdown("---")
+    # Impute Tira
+    numcols = tira.select_dtypes(include="number").columns
+    tira[numcols] = tira[numcols].fillna(tira[numcols].median())
+    catcol = tira.select_dtypes(exclude="number").columns
+    for col in catcol:
+        tira[col] = tira[col].fillna(tira[col].mode()[0])
 
-    # --- Section 1: Regression Metrics ---
-    st.markdown("### 📉 Continuous & Probability Estimations")
-    r_col1, r_col2 = st.columns(2)
-    
-    with r_col1:
-        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.markdown("#### 1. Linear Regression")
-        st.write("Built on scaled feature tracking using a `MinMaxScaler` preprocessing data pipeline block.")
-        st.metric(label="R² Prediction Evaluation Score", value="0.6813", delta="Baseline Fit")
-        st.markdown("</div>", unsafe_allow_html=True)
-        
-    with r_col2:
-        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.markdown("#### 2. Logistic Regression")
-        st.write("Classification targeted tracking utilizing binary `Engagement_Confirm` data thresholds.")
-        st.metric(label="Overall Testing Accuracy Score", value="93.76%")
-        st.markdown("</div>", unsafe_allow_html=True)
+    # Impute Purplle
+    numeric = purple.select_dtypes(include="number").columns
+    categorical = purple.select_dtypes(exclude="number").columns
+    purple[numeric] = purple[numeric].fillna(purple[numeric].median())
+    for col in categorical:
+        purple[col] = purple[col].fillna(purple[col].mode()[0])
 
-    # Logistic Confusion Matrix & Classification Details
-    c_col1, c_col2 = st.columns([1, 2])
-    with c_col1:
-        st.markdown("**Logistic Confusion Matrix Array:**")
-        cm_df = pd.DataFrame([[9175, 949], [1130, 22079]], columns=["Predicted 0", "Predicted 1"], index=["Actual 0", "Actual 1"])
-        st.dataframe(cm_df, use_container_width=True)
-    with c_col2:
-        st.markdown("**Logistic Classification Report Breakdown:**")
-        report_df = pd.DataFrame({
-            "Class": ["0 (Low Engagement)", "1 (High Engagement)"],
-            "Precision": [0.89, 0.96],
-            "Recall": [0.91, 0.95],
-            "F1-Score": [0.90, 0.96],
-            "Support": [10124, 23209]
-        }).set_index("Class")
-        st.dataframe(report_df, use_container_width=True)
+    # Impute Nykaa
+    numericaldata = nyka.select_dtypes(include="number").columns
+    categoricaldata = nyka.select_dtypes(exclude="number").columns
+    nyka[numericaldata] = nyka[numericaldata].fillna(nyka[numericaldata].median())
+    for col in categoricaldata:
+        nyka[col] = nyka[col].fillna(nyka[col].mode()[0])
 
-    st.markdown("---")
+    # Consolidate
+    consolidate = pd.concat([nyka, purple, tira], axis=0)
+    consolidated1 = consolidate.copy(deep=True)
 
-    # --- Section 2: Tree-Based Models ---
-    st.markdown("### 🎯 Ensembles & Structural Tree Classifiers")
-    tree_col1, tree_col2 = st.columns(2)
-    
-    with tree_col1:
-        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.markdown("#### 3. Decision Tree Classifier")
-        st.metric(label="Decision Tree Accuracy", value="52.54%")
-        
-        col_dt1, col_dt2 = st.columns(2)
-        with col_dt1:
-            st.markdown("**Best Hyperparameters:**")
-            st.json({"criterion": "gini", "splitter": "best", "max_depth": 5, "min_samples_split": 5, "min_samples_leaf": 2})
-        with col_dt2:
-            st.markdown("**Feature Importances:**")
-            fi_df = pd.DataFrame({"Feature": ["Campaign_Type", "Target_Audience", "Customer_Segment"], "Gini Importance": [0.36, 0.35, 0.29]}).set_index("Feature")
-            st.dataframe(fi_df, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # Feature Engineering
+    consolidated1["CTR"] = consolidated1["Clicks"] / consolidated1["Leads"]
+    consolidated1["leadRate"] = consolidated1["Leads"] / consolidated1["Clicks"]
+    consolidated1["converstionrate"] = consolidated1["Conversions"] / consolidated1["Leads"]
 
-    with tree_col2:
-        st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-        st.markdown("#### 4. Random Forest Classifier")
-        st.metric(label="Random Forest Accuracy", value="52.48%")
-        
-        col_rf1, col_rf2 = st.columns(2)
-        with col_rf1:
-            st.markdown("**Model Setup:**")
-            st.write("Ensemble compiled using 100 deterministic estimators via locked random tracking state.")
-        with col_rf2:
-            st.markdown("**Feature Importances:**")
-            rf_fi = pd.DataFrame({"Feature": ["Campaign_Type", "Target_Audience", "Customer_Segment"], "Ensemble Importance": [0.34, 0.38, 0.28]}).set_index("Feature")
-            st.dataframe(rf_fi, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    return consolidated1
+
+
+df = process_and_consolidate()
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "⚙️ Feature Encoding & Preprocessing",
+    "📈 EDA & Correlation",
+    "📉 Linear Regression",
+    "🎯 Classification Models",
+    "🌳 Decision Tree Rules",
+    "🌲 Random Forest Classifier"
+])
+with tab1:
+    st.subheader("Data Preprocessing & Feature Encoding Pipeline")
+
+    st.markdown("""
+    To prepare the raw transactional performance logs from **Tira, Purplle, and Nykaa** for advanced scikit-learn models, the following pipeline operations are automatically applied behind the scenes:
+    """)
+
+    col_enc1, col_enc2 = st.columns(2)
+
+    with col_enc1:
+        st.markdown("#### 🔹 Data Imputation Rules Implemented")
+        st.markdown("""
+        * **Numerical Variables:** Filled using the **Median**.
+        * **Categorical Features:** Filled using the **Mode**.
+        """)
+
+        st.markdown("#### 🔹 Derived Engineered Features")
+        st.code("""
+df["CTR"] = df["Clicks"] / df["Leads"]
+df["leadRate"] = df["Leads"] / df["Clicks"]
+df["converstionrate"] = df["Conversions"] / df["Leads"]
+        """, language="python")
+
+    with col_enc2:
+        st.markdown("#### 🔹 Label Encoding Transformation Summary")
+
+        encoding_preview = df[["Campaign_Type", "Target_Audience", "Customer_Segment"]].copy()
+        for col in encoding_preview.columns:
+            encoding_preview[col] = LabelEncoder().fit_transform(encoding_preview[col])
+
+        st.dataframe(encoding_preview.head(6))
 
     st.markdown("---")
+    st.markdown("#### 📋 Consolidated Dataset Sample Preview")
+    st.dataframe(df.head(5))
+with tab2:
+    st.subheader("Exploratory Data Analysis")
 
-    # --- Section 3: Advanced Optimization ---
-    st.markdown("### 🚀 Advanced Boosting Frameworks")
-    st.markdown("<div class='metric-container'>", unsafe_allow_html=True)
-    st.markdown("#### 5. XGBoost Classifier & RandomizedSearchCV Hyperparameter Tuning")
-    
-    xgb_col1, xgb_col2 = st.columns([1, 2])
-    with xgb_col1:
-        st.metric(label="XGBoost Optimized Accuracy Score", value="52.64%")
-    with xgb_col2:
-        st.markdown("**Best Param Tuning Configuration Discovered:**")
-        st.json({
-            "xgb__subsample": 0.7,
-            "xgb__n_estimators": 300,
-            "xgb__min_child_weight": 3,
-            "xgb__max_depth": 3,
-            "xgb__learning_rate": 0.1,
-            "xgb__gamma": 0.2,
-            "xgb__colsample_bytree": 0.7
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("**Target Variable Revenue Correlation Matrix**")
+        corr_cols = ["Clicks", "Leads", "Conversions", "Revenue", "Impressions", "ROI",
+                     "Engagement_Score", "Duration", "Acquisition_Cost"]
+        correlation = df[corr_cols].corr()["Revenue"]
+        st.dataframe(correlation)
+
+    with col2:
+        st.markdown("**Conversions vs Revenue Trend**")
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.regplot(
+            data=df,
+            x='Conversions',
+            y='Revenue',
+            ci=None,
+            scatter_kws={'alpha': 0.6},
+            line_kws={'color': 'red'},
+            ax=ax
+        )
+        st.pyplot(fig)
+with tab3:
+    st.subheader("Linear Regression Pipeline: Revenue Prediction")
+
+    features_list = ["Clicks", "Leads", "Conversions", "ROI", "Engagement_Score", "Impressions"]
+    X_lr = df[features_list]
+    y_lr = df[["Revenue"]]
+
+    x_train, x_test, y_train, y_test = train_test_split(
+        X_lr, y_lr, test_size=0.2, random_state=4
+    )
+
+    lrmodel = Pipeline([
+        ("scalar", MinMaxScaler()),
+        ("linear", LinearRegression())
+    ])
+
+    lrmodel.fit(x_train, y_train)
+    y_pred = lrmodel.predict(x_test)
+    lr_score = r2_score(y_test, y_pred)
+
+    st.metric(label="Linear Regression R² Variance Score", value=f"{lr_score:.6f}")
+
+    with st.expander("Model Intercept and Scaled Coefficients"):
+        st.write("Intercept:", lrmodel.named_steps['linear'].intercept_)
+
+        coef_df = pd.DataFrame({
+            'Feature': features_list,
+            'Coefficient': lrmodel.named_steps['linear'].coef_.flatten()
         })
-    st.markdown("</div>", unsafe_allow_html=True)
+
+        st.dataframe(coef_df)
+with tab4:
+    st.subheader("Binary Profit Margin Classifiers")
+
+    logistic_copy = df.copy(deep=True)
+    logistic_copy = logistic_copy.drop(["Campaign_ID", "Date"], axis=1, errors='ignore')
+
+    logistic_copy["Profit"] = logistic_copy["Revenue"] - logistic_copy["Acquisition_Cost"]
+    logistic_copy["Profit_Confirm"] = (logistic_copy["Profit"] > 1.00).astype(int)
+
+    X_log = logistic_copy[["Revenue", "Acquisition_Cost", "Conversions"]]
+    y_log = logistic_copy["Profit_Confirm"]
+
+    log_xtrain, log_xtest, log_ytrain, log_ytest = train_test_split(
+        X_log, y_log, test_size=0.9, random_state=42
+    )
+
+    c1, c2 = st.columns(2)
+
+    # ---------------- Logistic Regression ----------------
+    with c1:
+        st.markdown("### 1. Logistic Regression Model")
+
+        log_model = Pipeline([
+            ("logistic", LogisticRegression())
+        ])
+
+        log_model.fit(log_xtrain, log_ytrain)
+        pred_log = log_model.predict(log_xtest)
+
+        acc_log = accuracy_score(log_ytest, pred_log)
+        st.metric(label="Logistic Accuracy", value=f"{acc_log:.6f}")
+
+        st.markdown("**Classification Report:**")
+        st.text(classification_report(log_ytest, pred_log))
+
+        st.markdown("**Confusion Matrix:**")
+        st.write(confusion_matrix(log_ytest, pred_log))
+
+    # ---------------- XGBoost Classifier ----------------
+    with c2:
+        st.markdown("### 2. Tuned XGBoost Classifier Model")
+
+        pipeline_xgb = Pipeline([
+            ('scalar', MinMaxScaler()),
+            ('xgb', XGBClassifier(
+                subsample=0.7,
+                n_estimators=300,
+                min_child_weight=3,
+                max_depth=3,
+                learning_rate=0.1,
+                gamma=0.2,
+                colsample_bytree=0.7,
+                random_state=42
+            ))
+        ])
+
+        xgb_features = logistic_copy[["Campaign_Type", "Target_Audience", "Customer_Segment"]].copy()
+        for col in xgb_features.columns:
+            xgb_features[col] = LabelEncoder().fit_transform(xgb_features[col])
+
+        xgb_features["Profit"] = logistic_copy["Profit"]
+        xgb_target = (logistic_copy["Profit"] > logistic_copy["Profit"].mean()).astype(int)
+
+        dtrain, dtest, ttrain, ttest = train_test_split(
+            xgb_features, xgb_target, test_size=0.2, random_state=4, stratify=xgb_target
+        )
+
+        pipeline_xgb.fit(dtrain, ttrain)
+        xgb_pred = pipeline_xgb.predict(dtest)
+
+        acc_xgb = accuracy_score(ttest, xgb_pred)
+        st.metric(label="XGBoost Target Accuracy", value=f"{acc_xgb:.6f}")
+
+        st.markdown("Classification Report:")
+        st.text(classification_report(ttest, xgb_pred))
+
+        st.markdown("Confusion Matrix:")
+        st.write(confusion_matrix(ttest, xgb_pred))
+with tab5:
+    st.subheader("Decision Tree Classification Flow")
+
+    dt_copy = df.copy(deep=True)
+    dt_copy["Profit"] = dt_copy['Revenue'] - dt_copy['Acquisition_Cost']
+    profit_mean = dt_copy["Profit"].mean()
+
+    st.info(f"Target Baseline split threshold configured around Mean Profit Margin: {profit_mean:.4f}")
+
+    dt_trimmed = dt_copy[["Campaign_Type", "Target_Audience", "Customer_Segment"]].copy()
+    for col in dt_trimmed.columns:
+        dt_trimmed[col] = LabelEncoder().fit_transform(dt_trimmed[col])
+
+    dt_trimmed["Profit"] = dt_copy["Profit"]
+    dt_target = (dt_copy["Profit"] > profit_mean).astype(int)
+
+    dtrain_dt, dtest_dt, ttrain_dt, ttest_dt = train_test_split(
+        dt_trimmed, dt_target, test_size=0.2, random_state=4, stratify=dt_target
+    )
+
+    dtree_model = Pipeline([
+        ("scalar", MinMaxScaler()),
+        ("decision", DecisionTreeClassifier(
+            splitter='best',
+            min_samples_split=5,
+            min_samples_leaf=2,
+            max_depth=5,
+            criterion='gini',
+            random_state=42
+        ))
+    ])
+
+    dtree_model.fit(dtrain_dt, ttrain_dt)
+    tpred_dt = dtree_model.predict(dtest_dt)
+
+    col_dt1, col_dt2 = st.columns(2)
+
+    with col_dt1:
+        st.metric(label="Decision Tree Prediction Accuracy",
+                  value=f"{accuracy_score(ttest_dt, tpred_dt):.6f}")
+        st.markdown("Confusion Matrix:")
+        st.write(confusion_matrix(ttest_dt, tpred_dt))
+
+    with col_dt2:
+        st.markdown("Classification Metrics Evaluation:")
+        st.text(classification_report(ttest_dt, tpred_dt))
+with tab6:
+    st.subheader("Random Forest Ensemble Classification Performance")
+
+    rf_copy = df.copy(deep=True)
+    rf_copy["Profit"] = rf_copy['Revenue'] - rf_copy['Acquisition_Cost']
+    rf_profit_mean = rf_copy["Profit"].mean()
+
+    rf_trimmed = rf_copy[["Campaign_Type", "Target_Audience", "Customer_Segment"]].copy()
+    for col in rf_trimmed.columns:
+        rf_trimmed[col] = LabelEncoder().fit_transform(rf_trimmed[col])
+
+    rf_trimmed["Profit"] = rf_copy["Profit"]
+    rf_target = (rf_copy["Profit"] > rf_profit_mean).astype(int)
+
+    dtrain_rf, dtest_rf, ttrain_rf, ttest_rf = train_test_split(
+        rf_trimmed, rf_target, test_size=0.2, random_state=4, stratify=rf_target
+    )
+
+    rf_model = Pipeline([
+        ("forest", RandomForestClassifier(n_estimators=100, random_state=4))
+    ])
+
+    rf_model.fit(dtrain_rf, ttrain_rf.values.ravel())
+    rf_pred = rf_model.predict(dtest_rf)
+
+    col_rf1, col_rf2 = st.columns(2)
+
+    with col_rf1:
+        st.metric(label="Random Forest Accuracy Score",
+                  value=f"{accuracy_score(ttest_rf, rf_pred):.6f}")
+        st.markdown("Confusion Matrix:")
+        st.write(confusion_matrix(ttest_rf, rf_pred))
+
+    with col_rf2:
+        st.markdown("Classification Report Evaluation:")
+        st.text(classification_report(ttest_rf, rf_pred))
